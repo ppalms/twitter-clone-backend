@@ -1,0 +1,25 @@
+{
+  "name": "twitter-clone-backend",
+  "private": true,
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "sls": "sls"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ppalms/twitter-clone-backend.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/ppalms/twitter-clone-backend/issues"
+  },
+  "homepage": "https://github.com/ppalms/twitter-clone-backend#readme",
+  "devDependencies": {
+    "serverless": "2.4.0",
+    "serverless-appsync-plugin": "^1.4.0"
+  }
+}
