@@ -47,7 +47,7 @@ interface IProfile {
   website: AWSURL
   birthdate: AWSDate
   createdAt: AWSDateTime!
-  tweets: [Tweet!]
+  tweets: TweetsPage!
   followersCount: Int!
   followingCount: Int!
   tweetsCount: Int!
@@ -65,7 +65,7 @@ type MyProfile implements IProfile {
   website: AWSURL
   birthdate: AWSDate
   createdAt: AWSDateTime!
-  tweets: [Tweet!]
+  tweets: TweetsPage!
   followersCount: Int!
   followingCount: Int!
   tweetsCount: Int!
@@ -83,7 +83,7 @@ type OtherProfile implements IProfile {
   website: AWSURL
   birthdate: AWSDate
   createdAt: AWSDateTime!
-  tweets: [Tweet!]
+  tweets: TweetsPage!
   followersCount: Int!
   followingCount: Int!
   tweetsCount: Int!
