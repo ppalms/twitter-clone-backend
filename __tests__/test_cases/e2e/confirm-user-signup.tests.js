@@ -9,6 +9,7 @@ describe('When a user signs up', () => {
     const user = await when.a_user_signs_up(password, name, email);
 
     const ddbUser = await then.user_exists_in_UsersTable(user.username);
+
     expect(ddbUser).toMatchObject({
       id: user.username,
       name,

@@ -8,3 +8,7 @@ jspm_packages
 
 # Misc
 .DS_Store
+
+# Ignore serverless manifest files
+serverless.manifest.json
+.serverless/manifest.json
