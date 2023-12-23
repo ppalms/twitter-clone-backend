@@ -24,7 +24,10 @@
   "homepage": "https://github.com/ppalms/twitter-clone-backend#readme",
   "devDependencies": {
     "@aws-sdk/client-dynamodb": "^3.478.0",
+    "@aws-sdk/client-s3": "^3.478.0",
     "@aws-sdk/lib-dynamodb": "^3.478.0",
+    "@aws-sdk/s3-request-presigner": "^3.478.0",
+    "@types/axios": "^0.14.0",
     "@types/jest": "^26.0.15",
     "amplify-appsync-simulator": "^1.27.8",
     "amplify-velocity-template": "^1.4.14",
@@ -49,6 +52,7 @@
     "yargs": "^17.5.1"
   },
   "dependencies": {
-    "chance": "^1.1.11"
+    "chance": "^1.1.11",
+    "ulid": "^2.3.0"
   }
 }
