@@ -14,6 +14,7 @@ mappingTemplates:
   - type: Query
     field: getImageUploadUrl
     dataSource: getImageUploadUrl
+    # request/response false means this is a direct resolver with no mapping templates
     request: false
     response: false
 
@@ -21,14 +22,27 @@ mappingTemplates:
     field: editMyProfile
     dataSource: usersTable
 
+  - type: Mutation
+    field: tweet
+    dataSource: tweetFunction
+    request: false
+    response: false
+
 dataSources:
   - type: NONE
     name: none
+
   - type: AMAZON_DYNAMODB
     name: usersTable
     config:
       tableName: !Ref UsersTable
+
   - type: AWS_LAMBDA
     name: getImageUploadUrl
     config:
       functionName: getImageUploadUrl
+
+  - type: AWS_LAMBDA
+    name: tweetFunction
+    config:
+      functionName: tweet
