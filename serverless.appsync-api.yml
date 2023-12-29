@@ -7,26 +7,34 @@ userPoolConfig:
   userPoolId: !Ref CognitoUserPool
 mappingTemplatesLocation: mapping-templates
 mappingTemplates:
+  # QUERIES
   - type: Query
     field: getMyProfile
     dataSource: usersTable
-
   - type: Query
     field: getImageUploadUrl
     dataSource: getImageUploadUrl
     # request/response false means this is a direct resolver with no mapping templates
     request: false
     response: false
+  - type: Query
+    field: getTweets
+    dataSource: tweetsTable
 
+  # MUTATIONS
   - type: Mutation
     field: editMyProfile
     dataSource: usersTable
-
   - type: Mutation
     field: tweet
     dataSource: tweetFunction
     request: false
     response: false
+
+  # NESTED FIELDS
+  - type: Tweet
+    field: profile
+    dataSource: usersTable
 
 dataSources:
   - type: NONE
@@ -36,6 +44,11 @@ dataSources:
     name: usersTable
     config:
       tableName: !Ref UsersTable
+
+  - type: AMAZON_DYNAMODB
+    name: tweetsTable
+    config:
+      tableName: !Ref TweetsTable
 
   - type: AWS_LAMBDA
     name: getImageUploadUrl
