@@ -52,6 +52,22 @@ const we_invoke_getImageUploadUrl = async (
   return await handler(event, context);
 };
 
+const we_invoke_tweet = async (username, text) => {
+  const handler = require('../../functions/tweet.js').handler;
+
+  const context = {};
+  const event = {
+    identity: {
+      username,
+    },
+    arguments: {
+      text,
+    },
+  };
+
+  return await handler(event, context);
+};
+
 const we_invoke_an_appsync_template = (templatePath, context) => {
   const template = fs.readFileSync(templatePath, { encoding: 'utf-8' });
   const ast = velocityTemplate.parse(template);
@@ -186,12 +202,42 @@ const a_user_calls_getImageUploadUrl = async (user, extension, contentType) => {
   return url;
 };
 
+const a_user_calls_tweet = async (user, text) => {
+  const tweet = `mutation tweet($text: String!) {
+    tweet(text: $text) {
+      id
+      createdAt
+      text
+      replies
+      likes
+      retweets
+    }
+  }`;
+
+  const variables = {
+    text,
+  };
+
+  const data = await GraphQL(
+    process.env.API_URL,
+    tweet,
+    variables,
+    user.accessToken
+  );
+
+  const newTweet = data.tweet;
+  console.log(`[${user.username}] - posted new tweet`);
+  return newTweet;
+};
+
 module.exports = {
   we_invoke_confirmUserSignup,
   we_invoke_getImageUploadUrl,
+  we_invoke_tweet,
   we_invoke_an_appsync_template,
   a_user_signs_up,
   a_user_calls_getMyProfile,
   a_user_calls_editMyProfile,
   a_user_calls_getImageUploadUrl,
+  a_user_calls_tweet,
 };

@@ -12,7 +12,7 @@ describe('Mutation.editMyProfile.request template', () => {
 
     const username = chance.guid();
     const newProfile = {
-      name: 'Han',
+      name: 'Han Solo',
       imageUrl: null,
       backgroundImageUrl: null,
       bio: 'Scoundrelly',
@@ -39,7 +39,7 @@ describe('Mutation.editMyProfile.request template', () => {
         },
         expressionValues: {
           ':name': {
-            S: 'Han',
+            S: 'Han Solo',
           },
           ':imageUrl': {
             NULL: true,
