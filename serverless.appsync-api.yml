@@ -20,6 +20,9 @@ mappingTemplates:
   - type: Query
     field: getTweets
     dataSource: tweetsTable
+  - type: Query
+    field: getMyTimeline
+    dataSource: timelinesTable
 
   # MUTATIONS
   - type: Mutation
@@ -35,6 +38,9 @@ mappingTemplates:
   - type: Tweet
     field: profile
     dataSource: usersTable
+  - type: TimelinePage
+    field: tweets
+    dataSource: tweetsTable
 
 dataSources:
   - type: NONE
@@ -50,6 +56,11 @@ dataSources:
     config:
       tableName: !Ref TweetsTable
 
+  - type: AMAZON_DYNAMODB
+    name: timelinesTable
+    config:
+      tableName: !Ref TimelinesTable
+
   - type: AWS_LAMBDA
     name: getImageUploadUrl
     config:
@@ -59,3 +70,6 @@ dataSources:
     name: tweetFunction
     config:
       functionName: tweet
+
+substitutions:
+  TweetsTable: !Ref TweetsTable

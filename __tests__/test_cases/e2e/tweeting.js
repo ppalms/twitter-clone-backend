@@ -27,23 +27,53 @@ describe('Given an authenticated user', () => {
       });
     });
 
-    it('User will see the new tweet when they call getTweets', async () => {
-      const { tweets, nextToken } = await when.a_user_calls_getTweets(
-        user,
-        user.username,
-        25
-      );
+    describe('When user calls getTweets', () => {
+      let tweets, nextToken;
+      beforeAll(async () => {
+        const result = await when.a_user_calls_getTweets(
+          user,
+          user.username,
+          25
+        );
+        tweets = result.tweets;
+        nextToken = result.nextToken;
+      });
 
-      expect(nextToken).toBeNull();
-      expect(tweets).toHaveLength(1);
-      expect(tweets[0]).toEqual(tweet);
+      it('User will see the new tweet in the tweets array', async () => {
+        expect(nextToken).toBeNull();
+        expect(tweets).toHaveLength(1);
+        expect(tweets[0]).toEqual(tweet);
+      });
+
+      it('User cannot ask for more than 25 tweets in a page', async () => {
+        await expect(
+          when.a_user_calls_getTweets(user, user.username, 26)
+        ).rejects.toMatchObject({
+          message: expect.stringContaining('Max limit is 25'),
+        });
+      });
     });
 
-    it('User cannot ask for more than 25 tweets in a page', async () => {
-      await expect(
-        when.a_user_calls_getTweets(user, user.username, 26)
-      ).rejects.toMatchObject({
-        message: expect.stringContaining('Max limit is 25'),
+    describe('When user calls getMyTimeline', () => {
+      let tweets, nextToken;
+      beforeAll(async () => {
+        const result = await when.a_user_calls_getMyTimeline(user, 25);
+        tweets = result.tweets;
+        nextToken = result.nextToken;
+      });
+
+      it('User will see the new tweet in the tweets array', async () => {
+        expect(nextToken).toBeNull();
+        expect(tweets).toHaveLength(1);
+        expect(tweets[0]).toEqual(tweet);
+      });
+
+      it('User cannot ask for more than 25 tweets in a page', async () => {
+        await expect(
+          when.a_user_calls_getMyTimeline(user, 26)
+        ).rejects.toMatchObject({
+          message: expect.stringContaining('Max limit is 25'),
+        });
       });
     });
   });
