@@ -3,11 +3,11 @@ const when = require('../../steps/when');
 const chance = require('chance').Chance();
 const path = require('path');
 
-describe('TimelinePage.tweets.request template', () => {
+describe('UnhydratedTweetsPage.tweets.request template', () => {
   it('Should return empty array if source.tweets is empty', () => {
     const templatePath = path.resolve(
       __dirname,
-      '../../../mapping-templates/TimelinePage.tweets.request.vtl'
+      '../../../mapping-templates/UnhydratedTweetsPage.tweets.request.vtl'
     );
 
     const username = chance.guid();
@@ -25,7 +25,7 @@ describe('TimelinePage.tweets.request template', () => {
   it('Should convert timeline tweets to BatchGetItem keys', () => {
     const templatePath = path.resolve(
       __dirname,
-      '../../../mapping-templates/TimelinePage.tweets.request.vtl'
+      '../../../mapping-templates/UnhydratedTweetsPage.tweets.request.vtl'
     );
 
     const username = chance.guid();
