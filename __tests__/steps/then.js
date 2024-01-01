@@ -3,6 +3,7 @@ const { getSignedUrl } = require('@aws-sdk/s3-request-presigner');
 const { S3Client, PutObjectCommand } = require('@aws-sdk/client-s3');
 const http = require('axios');
 const fs = require('fs');
+const _ = require('lodash');
 
 const user_exists_in_UsersTable = async (id) => {
   const dynamodb = new DynamoDB.DocumentClient();
@@ -30,6 +31,53 @@ const tweet_exists_in_TweetsTable = async (id) => {
     .get({
       TableName: process.env.TWEETS_TABLE,
       Key: { id },
+    })
+    .promise();
+
+  expect(resp.Item).toBeTruthy();
+
+  return resp.Item;
+};
+
+const retweet_exists_in_TweetsTable = async (userId, tweetId) => {
+  const dynamodb = new DynamoDB.DocumentClient();
+
+  console.log(
+    `looking for retweet of [${tweetId}] in table [${process.env.TWEETS_TABLE}]`
+  );
+  const resp = await dynamodb
+    .query({
+      TableName: process.env.TWEETS_TABLE,
+      IndexName: 'retweetsByCreator',
+      KeyConditionExpression: 'creator = :userId AND retweetOf = :tweetId',
+      ExpressionAttributeValues: {
+        ':userId': userId,
+        ':tweetId': tweetId,
+      },
+      Limit: 1,
+    })
+    .promise();
+
+  const retweet = _.get(resp, 'Items.0');
+
+  expect(retweet).toBeTruthy();
+
+  return retweet;
+};
+
+const retweet_exists_in_RetweetsTable = async (userId, tweetId) => {
+  const dynamodb = new DynamoDB.DocumentClient();
+
+  console.log(
+    `looking for retweet of [${tweetId}] for user [${userId}] in table [${process.env.RETWEETS_TABLE}]`
+  );
+  const resp = await dynamodb
+    .get({
+      TableName: process.env.RETWEETS_TABLE,
+      Key: {
+        userId,
+        tweetId,
+      },
     })
     .promise();
 
@@ -76,6 +124,28 @@ const tweetsCount_is_updated_in_UsersTable = async (id, newCount) => {
   return resp.Item;
 };
 
+const there_are_N_tweets_in_TimelinesTable = async (userId, n) => {
+  const dynamodb = new DynamoDB.DocumentClient();
+
+  console.log(
+    `looking for [${n}] tweets for user [${userId}] in table [${process.env.TIMELINES_TABLE}]`
+  );
+  const resp = await dynamodb
+    .query({
+      TableName: process.env.TIMELINES_TABLE,
+      KeyConditionExpression: 'userId = :userId',
+      ExpressionAttributeValues: {
+        ':userId': userId,
+      },
+      ScanIndexForward: false,
+    })
+    .promise();
+
+  expect(resp.Items).toHaveLength(n);
+
+  return resp.Items;
+};
+
 const user_can_upload_image_to_url = async (url, filePath, contentType) => {
   const data = fs.readFileSync(filePath);
 
@@ -120,8 +190,11 @@ const user_can_upload_image_to_url = async (url, filePath, contentType) => {
 module.exports = {
   user_exists_in_UsersTable,
   tweet_exists_in_TweetsTable,
+  retweet_exists_in_TweetsTable,
+  retweet_exists_in_RetweetsTable,
   tweet_exists_in_TimelinesTable,
   tweetsCount_is_updated_in_UsersTable,
+  there_are_N_tweets_in_TimelinesTable,
   user_can_upload_image_to_url,
   // user_can_download_image_from,
 };
