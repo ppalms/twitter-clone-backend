@@ -47,6 +47,11 @@ mappingTemplates:
     dataSource: retweetFunction
     request: false
     response: false
+  - type: Mutation
+    field: unretweet
+    dataSource: unretweetFunction
+    request: false
+    response: false
 
   # NESTED FIELDS
   - type: Tweet
@@ -81,32 +86,26 @@ mappingTemplates:
 dataSources:
   - type: NONE
     name: none
-
   - type: AMAZON_DYNAMODB
     name: usersTable
     config:
       tableName: !Ref UsersTable
-
   - type: AMAZON_DYNAMODB
     name: tweetsTable
     config:
       tableName: !Ref TweetsTable
-
   - type: AMAZON_DYNAMODB
     name: timelinesTable
     config:
       tableName: !Ref TimelinesTable
-
   - type: AMAZON_DYNAMODB
     name: likesTable
     config:
       tableName: !Ref LikesTable
-
   - type: AMAZON_DYNAMODB
     name: retweetsTable
     config:
       tableName: !Ref RetweetsTable
-
   - type: AMAZON_DYNAMODB
     name: likeMutation
     config:
@@ -120,7 +119,6 @@ dataSources:
           Resource:
             - !GetAtt UsersTable.Arn
             - !GetAtt TweetsTable.Arn
-
   - type: AMAZON_DYNAMODB
     name: unlikeMutation
     config:
@@ -134,21 +132,22 @@ dataSources:
           Resource:
             - !GetAtt UsersTable.Arn
             - !GetAtt TweetsTable.Arn
-
   - type: AWS_LAMBDA
     name: getImageUploadUrl
     config:
       functionName: getImageUploadUrl
-
   - type: AWS_LAMBDA
     name: tweetFunction
     config:
       functionName: tweet
-
   - type: AWS_LAMBDA
     name: retweetFunction
     config:
       functionName: retweet
+  - type: AWS_LAMBDA
+    name: unretweetFunction
+    config:
+      functionName: unretweet
 
 substitutions:
   TweetsTable: !Ref TweetsTable
