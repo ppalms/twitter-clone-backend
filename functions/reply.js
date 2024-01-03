@@ -1,41 +1,40 @@
 const { DynamoDBClient } = require('@aws-sdk/client-dynamodb');
 const {
   DynamoDBDocumentClient,
-  GetCommand,
   TransactWriteCommand,
 } = require('@aws-sdk/lib-dynamodb');
 const client = new DynamoDBClient({});
 const docClient = DynamoDBDocumentClient.from(client);
 const ulid = require('ulid');
+const _ = require('lodash');
 const { TweetTypes } = require('../lib/constants');
+const { getTweetById } = require('../lib/tweets');
 
-const { USERS_TABLE, TIMELINES_TABLE, TWEETS_TABLE, RETWEETS_TABLE } =
-  process.env;
-
+const { USERS_TABLE, TIMELINES_TABLE, TWEETS_TABLE } = process.env;
 module.exports.handler = async (event) => {
-  const { tweetId } = event.arguments;
+  const { tweetId, text } = event.arguments;
   const { username } = event.identity;
   const id = ulid.ulid();
   const timestamp = new Date().toJSON();
 
-  const getTweetResp = await docClient.send(
-    new GetCommand({
-      TableName: TWEETS_TABLE,
-      Key: { id: tweetId },
-    })
-  );
-
-  const tweet = getTweetResp.Item;
+  const tweet = await getTweetById(tweetId);
   if (!tweet) {
-    throw new Error('Tweet not found');
+    throw new Error('Tweet is not found');
   }
 
+  const inReplyToUserIds = await getUserIdsToReplyTo(tweet);
+
   const newTweet = {
-    __typename: TweetTypes.RETWEET,
+    __typename: TweetTypes.REPLY,
     id,
     creator: username,
     createdAt: timestamp,
-    retweetOf: tweetId,
+    inReplyToTweetId: tweetId,
+    inReplyToUserIds,
+    text,
+    replies: 0,
+    likes: 0,
+    retweets: 0,
   };
 
   const transactItems = [
@@ -46,21 +45,12 @@ module.exports.handler = async (event) => {
       },
     },
     {
-      Put: {
-        TableName: RETWEETS_TABLE,
-        Item: {
-          userId: username,
-          tweetId,
-          createdAt: timestamp,
-        },
-        ConditionExpression: 'attribute_not_exists(tweetId)',
-      },
-    },
-    {
       Update: {
         TableName: TWEETS_TABLE,
-        Key: { id: tweetId },
-        UpdateExpression: 'ADD retweets :one',
+        Key: {
+          id: tweetId,
+        },
+        UpdateExpression: 'ADD replies :one',
         ExpressionAttributeValues: {
           ':one': 1,
         },
@@ -70,7 +60,9 @@ module.exports.handler = async (event) => {
     {
       Update: {
         TableName: USERS_TABLE,
-        Key: { id: username },
+        Key: {
+          id: username,
+        },
         UpdateExpression: 'ADD tweetsCount :one',
         ExpressionAttributeValues: {
           ':one': 1,
@@ -78,26 +70,37 @@ module.exports.handler = async (event) => {
         ConditionExpression: 'attribute_exists(id)',
       },
     },
-  ];
-
-  console.log(`creator: [${tweet.creator}]; username: [${username}]`);
-  if (tweet.creator !== username) {
-    transactItems.push({
+    {
       Put: {
         TableName: TIMELINES_TABLE,
         Item: {
           userId: username,
           tweetId: id,
-          retweetOf: tweetId,
           timestamp,
+          inReplyToTweetId: tweetId,
+          inReplyToUserIds,
         },
       },
-    });
-  }
+    },
+  ];
 
   await docClient.send(
-    new TransactWriteCommand({ TransactItems: transactItems })
+    new TransactWriteCommand({
+      TransactItems: transactItems,
+    })
   );
 
   return newTweet;
 };
+
+async function getUserIdsToReplyTo(tweet) {
+  let userIds = [tweet.creator];
+  if (tweet.__typename === TweetTypes.REPLY) {
+    userIds = userIds.concat(tweet.inReplyToUserIds);
+  } else if (tweet.__typename === TweetTypes.RETWEET) {
+    const retweetOf = await getTweetById(tweet.retweetOf);
+    userIds = userIds.concat(await getUserIdsToReplyTo(retweetOf));
+  }
+
+  return _.uniq(userIds);
+}

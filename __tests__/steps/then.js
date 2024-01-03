@@ -39,6 +39,53 @@ const tweet_exists_in_TweetsTable = async (id) => {
   return resp.Item;
 };
 
+const tweet_exists_in_TimelinesTable = async (userId, tweetId) => {
+  const dynamodb = new DynamoDB.DocumentClient();
+
+  console.log(
+    `looking for tweet [${tweetId}] for user [${userId}] in table [${process.env.TIMELINES_TABLE}]`
+  );
+  const resp = await dynamodb
+    .get({
+      TableName: process.env.TIMELINES_TABLE,
+      Key: {
+        userId,
+        tweetId,
+      },
+    })
+    .promise();
+
+  expect(resp.Item).toBeTruthy();
+
+  return resp.Item;
+};
+
+const reply_exists_in_TweetsTable = async (userId, tweetId) => {
+  const dynamodb = new DynamoDB.DocumentClient();
+
+  console.log(
+    `looking for reply by [${userId}] to [${tweetId}] in table [${process.env.TWEETS_TABLE}]`
+  );
+  const resp = await dynamodb
+    .query({
+      TableName: process.env.TWEETS_TABLE,
+      IndexName: 'repliesForTweet',
+      KeyConditionExpression: 'inReplyToTweetId = :tweetId',
+      FilterExpression: 'creator = :userId',
+      ExpressionAttributeValues: {
+        ':tweetId': tweetId,
+        ':userId': userId,
+      },
+    })
+    .promise();
+
+  const reply = _.get(resp, 'Items.0');
+
+  expect(reply).toBeTruthy();
+
+  return reply;
+};
+
 const retweet_exists_in_TweetsTable = async (userId, tweetId) => {
   const dynamodb = new DynamoDB.DocumentClient();
 
@@ -120,27 +167,6 @@ const retweet_exists_in_RetweetsTable = async (userId, tweetId) => {
   const resp = await dynamodb
     .get({
       TableName: process.env.RETWEETS_TABLE,
-      Key: {
-        userId,
-        tweetId,
-      },
-    })
-    .promise();
-
-  expect(resp.Item).toBeTruthy();
-
-  return resp.Item;
-};
-
-const tweet_exists_in_TimelinesTable = async (userId, tweetId) => {
-  const dynamodb = new DynamoDB.DocumentClient();
-
-  console.log(
-    `looking for tweet [${tweetId}] for user [${userId}] in table [${process.env.TIMELINES_TABLE}]`
-  );
-  const resp = await dynamodb
-    .get({
-      TableName: process.env.TIMELINES_TABLE,
       Key: {
         userId,
         tweetId,
@@ -236,6 +262,7 @@ const user_can_upload_image_to_url = async (url, filePath, contentType) => {
 module.exports = {
   user_exists_in_UsersTable,
   tweet_exists_in_TweetsTable,
+  reply_exists_in_TweetsTable,
   retweet_exists_in_TweetsTable,
   retweet_does_not_exist_in_TweetsTable,
   retweet_does_not_exist_in_RetweetsTable,
