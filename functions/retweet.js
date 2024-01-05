@@ -25,8 +25,8 @@ module.exports.handler = async (event) => {
     })
   );
 
-  const tweet = getTweetResp.Item;
-  if (!tweet) {
+  const originalTweet = getTweetResp.Item;
+  if (!originalTweet) {
     throw new Error('Tweet not found');
   }
 
@@ -80,8 +80,8 @@ module.exports.handler = async (event) => {
     },
   ];
 
-  console.log(`creator: [${tweet.creator}]; username: [${username}]`);
-  if (tweet.creator !== username) {
+  console.log(`creator: [${originalTweet.creator}]; username: [${username}]`);
+  if (originalTweet.creator !== username) {
     transactItems.push({
       Put: {
         TableName: TIMELINES_TABLE,
