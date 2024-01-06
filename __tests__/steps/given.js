@@ -1,7 +1,13 @@
 require('dotenv').config();
 const AWS = require('aws-sdk');
+const { DynamoDBClient } = require('@aws-sdk/client-dynamodb');
+const { DynamoDBDocumentClient, PutCommand } = require('@aws-sdk/lib-dynamodb');
+const client = new DynamoDBClient({});
+const docClient = DynamoDBDocumentClient.from(client);
 const chance = require('chance').Chance();
 const velocityUtil = require('amplify-appsync-simulator/lib/velocity/util');
+
+const { RELATIONSHIPS_TABLE } = process.env;
 
 const a_random_user = () => {
   const firstName = chance.first({ nationality: 'en' });
@@ -90,8 +96,23 @@ const an_authenticated_user = async () => {
   };
 };
 
+const a_user_follows_another = async (userId, otherUserId) => {
+  await docClient.send(
+    new PutCommand({
+      TableName: RELATIONSHIPS_TABLE,
+      Item: {
+        userId,
+        sk: `FOLLOWS_${otherUserId}`,
+        otherUserId,
+        createdAt: new Date().toJSON(),
+      },
+    })
+  );
+};
+
 module.exports = {
   a_random_user,
   an_appsync_context,
   an_authenticated_user,
+  a_user_follows_another,
 };

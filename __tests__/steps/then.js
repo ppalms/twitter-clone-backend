@@ -1,6 +1,6 @@
-const DynamoDB = require('aws-sdk/clients/dynamodb');
-const { getSignedUrl } = require('@aws-sdk/s3-request-presigner');
-const { S3Client, PutObjectCommand } = require('@aws-sdk/client-s3');
+const DynamoDB = require('aws-sdk/clients/dynamodb'); // TODO update to v3 of sdk
+// const { getSignedUrl } = require('@aws-sdk/s3-request-presigner');
+// const { S3Client, PutObjectCommand } = require('@aws-sdk/client-s3');
 const http = require('axios');
 const fs = require('fs');
 const _ = require('lodash');
@@ -35,6 +35,27 @@ const tweet_exists_in_TweetsTable = async (id) => {
     .promise();
 
   expect(resp.Item).toBeTruthy();
+
+  return resp.Item;
+};
+
+const tweet_does_not_exist_in_TimelinesTable = async (userId, tweetId) => {
+  const dynamodb = new DynamoDB.DocumentClient();
+
+  console.log(
+    `looking for tweet [${tweetId}] for user [${userId}] in table [${process.env.TIMELINES_TABLE}]`
+  );
+  const resp = await dynamodb
+    .get({
+      TableName: process.env.TIMELINES_TABLE,
+      Key: {
+        userId,
+        tweetId,
+      },
+    })
+    .promise();
+
+  expect(resp.Item).not.toBeTruthy();
 
   return resp.Item;
 };
@@ -262,6 +283,7 @@ const user_can_upload_image_to_url = async (url, filePath, contentType) => {
 module.exports = {
   user_exists_in_UsersTable,
   tweet_exists_in_TweetsTable,
+  tweet_does_not_exist_in_TimelinesTable,
   reply_exists_in_TweetsTable,
   retweet_exists_in_TweetsTable,
   retweet_does_not_exist_in_TweetsTable,
