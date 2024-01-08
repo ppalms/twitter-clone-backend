@@ -271,6 +271,15 @@ const we_invoke_an_appsync_template = (templatePath, context) => {
   return JSON.parse(compiler.render(context));
 };
 
+const we_invoke_distributeTweetsToFollower = (event) => {
+  const handler =
+    require('../../functions/distribute-tweets-to-follower.js').handler;
+
+  const context = {};
+
+  return handler(event, context);
+};
+
 const we_invoke_distributeTweets = (event) => {
   const handler = require('../../functions/distribute-tweets.js').handler;
 
@@ -665,6 +674,7 @@ module.exports = {
   we_invoke_unretweet,
   we_invoke_reply,
   we_invoke_distributeTweets,
+  we_invoke_distributeTweetsToFollower,
   we_invoke_an_appsync_template,
   a_user_signs_up,
   a_user_calls_getMyProfile,
